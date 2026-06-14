@@ -14,3 +14,9 @@ grpc:
 
 storage:
   fsyncOnCommit: false
+
+# The metrics collector calls raft.DB.IsLeader on a nil pointer in
+# single-node mode (cefasdb-core bug), crashing the server seconds
+# after listen. Disable until upstream guards the nil.
+metrics:
+  enabled: false
