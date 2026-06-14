@@ -20,20 +20,37 @@ RUN mkdir -p /rootfs/bin /rootfs/sbin /rootfs/usr/bin /rootfs/usr/sbin \
 # Download the matching CefasDB release. amd64 static build runs
 # under the x86_64 kernel V86 boots.
 #
-# cefas-server is optional today — cefasdb-core publishes the CLI but
-# the server binary is still pre-release. When it lands, drop the
-# `|| true` and the runtime fallback in /init becomes unreachable.
+# cefasdb-core is a private repo today, so anonymous curl 404s.
+# CEFAS_TOKEN — a PAT with `contents:read` on cefasdb-core — opts
+# the build into baking in the binaries. Without it, the image
+# boots a Linux shell with the cefas binaries absent and the
+# runtime /init falls through to a CLI-less message.
+ARG CEFAS_TOKEN=
 RUN set -eux; \
-    if [ "$CEFAS_VERSION" = "latest" ]; then \
-      url="https://github.com/CefasDB/cefasdb-core/releases/latest/download"; \
-    else \
-      url="https://github.com/CefasDB/cefasdb-core/releases/download/${CEFAS_VERSION}"; \
+    if [ -z "$CEFAS_TOKEN" ]; then \
+      echo "CEFAS_TOKEN not set — building CLI-less image"; \
+      exit 0; \
     fi; \
-    curl -sSfL "$url/cefas-linux-amd64" -o /rootfs/usr/bin/cefas; \
-    chmod +x /rootfs/usr/bin/cefas; \
-    curl -sSfL "$url/cefas-server-linux-amd64" -o /rootfs/usr/sbin/cefas-server \
+    if [ "$CEFAS_VERSION" = "latest" ]; then \
+      api="https://api.github.com/repos/CefasDB/cefasdb-core/releases/latest"; \
+    else \
+      api="https://api.github.com/repos/CefasDB/cefasdb-core/releases/tags/${CEFAS_VERSION}"; \
+    fi; \
+    H_AUTH="Authorization: Bearer ${CEFAS_TOKEN}"; \
+    H_API="Accept: application/vnd.github+json"; \
+    H_RAW="Accept: application/octet-stream"; \
+    rel="$(curl -sSfL -H "$H_AUTH" -H "$H_API" "$api")"; \
+    fetch() { \
+      name="$1"; out="$2"; \
+      id="$(printf '%s' "$rel" | grep -oE "\"id\":[0-9]+,\"node_id\":[^,]+,\"name\":\"$name\"" | grep -oE '[0-9]+' | head -1)"; \
+      [ -n "$id" ] || { echo "asset $name not in release"; return 1; }; \
+      curl -sSfL -H "$H_AUTH" -H "$H_RAW" \
+        "https://api.github.com/repos/CefasDB/cefasdb-core/releases/assets/$id" -o "$out"; \
+    }; \
+    fetch cefas-linux-amd64 /rootfs/usr/bin/cefas && chmod +x /rootfs/usr/bin/cefas; \
+    fetch cefas-server-linux-amd64 /rootfs/usr/sbin/cefas-server \
       && chmod +x /rootfs/usr/sbin/cefas-server \
-      || echo "note: cefas-server-linux-amd64 not in this release — booting CLI-only"
+      || echo "note: cefas-server-linux-amd64 absent — CLI-only"
 
 # Skeleton dirs the kernel mounts into / our /init expects.
 RUN mkdir -p /rootfs/proc /rootfs/sys /rootfs/dev /rootfs/tmp \

@@ -13,6 +13,7 @@ mkdir -p "$STAGE"/{bin,sbin,dev,proc,sys,tmp,etc/cefas,etc/init.d,usr/bin,usr/sb
 
 docker build \
   --build-arg CEFAS_VERSION="$CEFAS_VERSION" \
+  --build-arg CEFAS_TOKEN="${CEFAS_TOKEN:-}" \
   -f Dockerfile.rootfs \
   -t cefas-sandbox-rootfs:build .
 

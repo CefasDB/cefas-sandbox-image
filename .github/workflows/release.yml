@@ -32,6 +32,9 @@ jobs:
           # release cadence. Default to `latest` from cefasdb-core unless
           # the workflow_dispatch input pins a specific tag.
           CEFAS_VERSION: ${{ github.event.inputs.cefas_version || 'latest' }}
+          # PAT with contents:read on CefasDB/cefasdb-core (private).
+          # Empty → image ships without the cefas binaries.
+          CEFAS_TOKEN: ${{ secrets.CEFAS_CORE_READ_TOKEN }}
         run: make initramfs
 
       - name: Attach to release

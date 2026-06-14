@@ -17,8 +17,13 @@ hostname cefas-sandbox
 
 mkdir -p /data
 
-# cefas-server may not ship in every release yet — boot the CLI
-# regardless. When present, start it and wait briefly for the bind.
+# The cefas binaries are baked in only when CEFAS_TOKEN was set at
+# build time. When absent, the user lands in a Linux shell with
+# busybox alone — useful for proving the V86 boot path itself.
+if [ ! -x /usr/bin/cefas ] && [ ! -x /usr/sbin/cefas-server ]; then
+  touch /etc/cefas/no-binary
+fi
+
 if [ -x /usr/sbin/cefas-server ]; then
   ( cefas-server -config /etc/cefas/server.toml > /tmp/cefas-server.log 2>&1 ) &
   i=0
