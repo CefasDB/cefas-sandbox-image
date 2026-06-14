@@ -45,4 +45,12 @@ export HOME=/root
 export PS1='cefas-sandbox:\w$ '
 cd /root
 
-exec setsid cttyhack /bin/sh +m
+# Respawn the shell forever — PID 1 must not exit or the kernel panics
+# and reboots. setsid + cttyhack aren't in the static busybox we ship,
+# so we wire stdio to /dev/console explicitly and run sh -i.
+while true; do
+  </dev/console >/dev/console 2>&1 /bin/sh -i
+  echo
+  echo '[init] shell exited; respawning…'
+  sleep 1
+done
