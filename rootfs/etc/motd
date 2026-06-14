@@ -2,13 +2,17 @@
    ┌─────────────────────────────────────────────────────────┐
    │  CefasDB Sandbox — running in your browser via V86      │
    ├─────────────────────────────────────────────────────────┤
-   │  cefas-server  127.0.0.1:8080  (HTTP)  9090 (gRPC)      │
-   │  data          /data           (tmpfs, wiped on reset)  │
+   │  cefas CLI     /usr/bin/cefas                           │
+   │  data dir      /data           (tmpfs, wiped on reset)  │
+   │  server log    /tmp/cefas-server.log                    │
    └─────────────────────────────────────────────────────────┘
 
    try:
-     cefas put hello world
-     cefas get hello
-     cefas explain "select * from t where pk='hello'"
-     cefas help
+     cefas --help
+     cefas version
+     cefas status        # server up? (if it shipped in this build)
+
+   the server binary is opt-in this release. when cefasdb-core
+   ships cefas-server-linux-amd64, the VM will boot it on :8080
+   and the CLI will talk to it without further config.
 

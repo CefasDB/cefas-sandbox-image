@@ -16,17 +16,22 @@ mount -t tmpfs    tmpfs    /tmp
 hostname cefas-sandbox
 
 mkdir -p /data
-( cefas-server -config /etc/cefas/server.toml > /tmp/cefas-server.log 2>&1 ) &
-SERVER_PID=$!
 
-# Wait briefly for the server to bind. Cap so a stuck boot still
-# drops the user at a shell with a useful error.
-i=0
-while [ $i -lt 30 ]; do
-  if cefas status >/dev/null 2>&1; then break; fi
-  sleep 0.2
-  i=$((i + 1))
-done
+# cefas-server may not ship in every release yet — boot the CLI
+# regardless. When present, start it and wait briefly for the bind.
+if [ -x /usr/sbin/cefas-server ]; then
+  ( cefas-server -config /etc/cefas/server.toml > /tmp/cefas-server.log 2>&1 ) &
+  i=0
+  while [ $i -lt 30 ]; do
+    if cefas status >/dev/null 2>&1; then break; fi
+    sleep 0.2
+    i=$((i + 1))
+  done
+else
+  : > /tmp/cefas-server.log
+  echo "cefas-server not present in this image — CLI-only sandbox" \
+    > /etc/cefas/no-server
+fi
 
 clear || true
 cat /etc/motd

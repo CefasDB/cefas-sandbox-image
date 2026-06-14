@@ -17,17 +17,23 @@ RUN mkdir -p /rootfs/bin /rootfs/sbin /rootfs/usr/bin /rootfs/usr/sbin \
       ln -sf /bin/busybox "/rootfs/bin/$applet" 2>/dev/null || true; \
     done
 
-# Download the matching CefasDB release. Static linux/386 build so
-# it runs under the 32-bit kernel V86 boots.
+# Download the matching CefasDB release. amd64 static build runs
+# under the x86_64 kernel V86 boots.
+#
+# cefas-server is optional today — cefasdb-core publishes the CLI but
+# the server binary is still pre-release. When it lands, drop the
+# `|| true` and the runtime fallback in /init becomes unreachable.
 RUN set -eux; \
     if [ "$CEFAS_VERSION" = "latest" ]; then \
       url="https://github.com/CefasDB/cefasdb-core/releases/latest/download"; \
     else \
       url="https://github.com/CefasDB/cefasdb-core/releases/download/${CEFAS_VERSION}"; \
     fi; \
-    curl -sSfL "$url/cefas-server-linux-386" -o /rootfs/usr/sbin/cefas-server; \
-    curl -sSfL "$url/cefas-linux-386"        -o /rootfs/usr/bin/cefas; \
-    chmod +x /rootfs/usr/sbin/cefas-server /rootfs/usr/bin/cefas
+    curl -sSfL "$url/cefas-linux-amd64" -o /rootfs/usr/bin/cefas; \
+    chmod +x /rootfs/usr/bin/cefas; \
+    curl -sSfL "$url/cefas-server-linux-amd64" -o /rootfs/usr/sbin/cefas-server \
+      && chmod +x /rootfs/usr/sbin/cefas-server \
+      || echo "note: cefas-server-linux-amd64 not in this release — booting CLI-only"
 
 # Skeleton dirs the kernel mounts into / our /init expects.
 RUN mkdir -p /rootfs/proc /rootfs/sys /rootfs/dev /rootfs/tmp \

@@ -8,8 +8,8 @@
 #
 # Goal: boot a 32-bit kernel under V86, run an initramfs, expose
 # /dev/console for the serial port V86 wires up by default.
-CONFIG_64BIT=n
-CONFIG_X86_32=y
+CONFIG_64BIT=y
+CONFIG_X86_64=y
 CONFIG_PRINTK=y
 CONFIG_EARLY_PRINTK=y
 CONFIG_SERIAL_8250=y
