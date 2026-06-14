@@ -5,7 +5,7 @@ FROM alpine:3.20 AS builder
 
 ARG CEFAS_VERSION=latest
 
-RUN apk add --no-cache curl ca-certificates xz tar
+RUN apk add --no-cache curl ca-certificates xz tar jq
 
 # Static busybox — one binary that provides every applet we need
 # inside the VM (sh, ls, cat, mount, ps, …).
@@ -42,7 +42,7 @@ RUN set -eux; \
     rel="$(curl -sSfL -H "$H_AUTH" -H "$H_API" "$api")"; \
     fetch() { \
       name="$1"; out="$2"; \
-      id="$(printf '%s' "$rel" | grep -oE "\"id\":[0-9]+,\"node_id\":[^,]+,\"name\":\"$name\"" | grep -oE '[0-9]+' | head -1)"; \
+      id="$(printf '%s' "$rel" | jq -r --arg n "$name" '.assets[] | select(.name == $n) | .id')"; \
       [ -n "$id" ] || { echo "asset $name not in release"; return 1; }; \
       curl -sSfL -H "$H_AUTH" -H "$H_RAW" \
         "https://api.github.com/repos/CefasDB/cefasdb-core/releases/assets/$id" -o "$out"; \
