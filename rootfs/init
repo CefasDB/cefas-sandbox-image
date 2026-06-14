@@ -15,6 +15,10 @@ mount -t tmpfs    tmpfs    /tmp
 
 hostname cefas-sandbox
 
+# Bring up loopback so the CLI can reach the server on 127.0.0.1
+# without DNS heroics. /etc/hosts already maps localhost.
+ip link set lo up 2>/dev/null || ifconfig lo 127.0.0.1 up 2>/dev/null || true
+
 mkdir -p /data
 
 # The cefas binaries are baked in only when CEFAS_TOKEN was set at
