@@ -1,0 +1,16 @@
+# Sandbox-tuned cefas-server config.
+# The VM is single-tenant, ephemeral, and offline — no replication,
+# no auth, no TLS. Bind loopback so the CLI on the same VM can reach
+# it without touching the (firewalled) network stack.
+
+data: /data
+
+http:
+  addr: 127.0.0.1:8080
+
+grpc:
+  addr: 127.0.0.1:9090
+  reflection: true
+
+storage:
+  fsyncOnCommit: false
