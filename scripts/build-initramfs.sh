@@ -24,6 +24,9 @@ docker cp "$cid:/rootfs/." "$STAGE/"
 cp rootfs/init "$STAGE/init"
 chmod 755 "$STAGE/init"
 cp -r rootfs/etc/. "$STAGE/etc/"
+# /root holds the cefas-cli profile so the user gets plaintext
+# dialing out of the box, no flags required.
+[ -d rootfs/root ] && cp -r rootfs/root/. "$STAGE/root/"
 
 pushd "$STAGE" >/dev/null
   find . -print0 \

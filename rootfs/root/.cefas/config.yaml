@@ -1,0 +1,7 @@
+# cefas-cli config — points at the local sandbox server.
+# Plaintext: the server doesn't ship TLS in this image.
+profiles:
+  default:
+    endpoint: localhost:9090
+    insecure: true
+    output: json
