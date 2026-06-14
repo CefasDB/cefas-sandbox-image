@@ -46,7 +46,7 @@ jobs:
             out/initramfs.cpio.gz
 
       - name: Publish to sandbox bucket
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && env.AWS_ACCESS_KEY_ID != ''
         env:
           AWS_ACCESS_KEY_ID:     ${{ secrets.SANDBOX_AWS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SANDBOX_AWS_SECRET }}
