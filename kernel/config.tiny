@@ -10,9 +10,9 @@
 #
 # Keep the deltas narrow — every flip risks breaking boot.
 
-# Guarantees, in case a future defconfig drops them
-CONFIG_64BIT=y
-CONFIG_X86_64=y
+# Guarantees, in case a future defconfig drops them. V86 is 32-bit.
+CONFIG_64BIT=n
+CONFIG_X86_32=y
 CONFIG_PRINTK=y
 CONFIG_PRINTK_TIME=y
 CONFIG_EARLY_PRINTK=y

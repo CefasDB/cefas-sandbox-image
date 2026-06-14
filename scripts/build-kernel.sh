@@ -18,14 +18,13 @@ if [[ ! -d "$SRC" ]]; then
 fi
 
 pushd "$SRC" >/dev/null
-  # x86_64_defconfig is the standard upstream config — it boots
-  # reliably under V86 with serial console, VGA console, initramfs,
-  # and the 8250 driver already enabled. Our overlay disables a few
-  # subsystems we never use to shave size.
-  make ARCH=x86 x86_64_defconfig
+  # V86 emulates a 32-bit (i686) CPU — its WASM core has no x86_64
+  # support. i386_defconfig is the matching upstream config and
+  # already enables serial/vgacon/initramfs/8250. Overlay narrows it.
+  make ARCH=i386 i386_defconfig
   cat ../../kernel/config.tiny >> .config
-  make ARCH=x86 olddefconfig
-  make ARCH=x86 -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu)" bzImage
+  make ARCH=i386 olddefconfig
+  make ARCH=i386 -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu)" bzImage
 popd >/dev/null
 
 cp "$SRC/arch/x86/boot/bzImage" "$OUT/bzImage"

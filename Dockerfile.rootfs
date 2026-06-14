@@ -10,7 +10,7 @@ RUN apk add --no-cache curl ca-certificates xz tar
 # Static busybox — one binary that provides every applet we need
 # inside the VM (sh, ls, cat, mount, ps, …).
 RUN mkdir -p /rootfs/bin /rootfs/sbin /rootfs/usr/bin /rootfs/usr/sbin \
- && curl -sSfL https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox \
+ && curl -sSfL https://busybox.net/downloads/binaries/1.35.0-i686-linux-musl/busybox \
       -o /rootfs/bin/busybox \
  && chmod +x /rootfs/bin/busybox \
  && for applet in $(/rootfs/bin/busybox --list); do \
@@ -47,10 +47,11 @@ RUN set -eux; \
       curl -sSfL -H "$H_AUTH" -H "$H_RAW" \
         "https://api.github.com/repos/CefasDB/cefasdb-core/releases/assets/$id" -o "$out"; \
     }; \
-    fetch cefas-linux-amd64 /rootfs/usr/bin/cefas && chmod +x /rootfs/usr/bin/cefas; \
-    fetch cefas-server-linux-amd64 /rootfs/usr/sbin/cefas-server \
+    fetch cefas-linux-386 /rootfs/usr/bin/cefas && chmod +x /rootfs/usr/bin/cefas \
+      || echo "note: cefas-linux-386 absent — Linux-only image"; \
+    fetch cefas-server-linux-386 /rootfs/usr/sbin/cefas-server \
       && chmod +x /rootfs/usr/sbin/cefas-server \
-      || echo "note: cefas-server-linux-amd64 absent — CLI-only"
+      || echo "note: cefas-server-linux-386 absent — CLI-only"
 
 # Skeleton dirs the kernel mounts into / our /init expects.
 RUN mkdir -p /rootfs/proc /rootfs/sys /rootfs/dev /rootfs/tmp \
