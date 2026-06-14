@@ -18,7 +18,11 @@ if [[ ! -d "$SRC" ]]; then
 fi
 
 pushd "$SRC" >/dev/null
-  make ARCH=x86 tinyconfig
+  # x86_64_defconfig is the standard upstream config — it boots
+  # reliably under V86 with serial console, VGA console, initramfs,
+  # and the 8250 driver already enabled. Our overlay disables a few
+  # subsystems we never use to shave size.
+  make ARCH=x86 x86_64_defconfig
   cat ../../kernel/config.tiny >> .config
   make ARCH=x86 olddefconfig
   make ARCH=x86 -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu)" bzImage
