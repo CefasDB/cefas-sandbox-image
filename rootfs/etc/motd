@@ -1,0 +1,14 @@
+
+   ┌─────────────────────────────────────────────────────────┐
+   │  CefasDB Sandbox — running in your browser via V86      │
+   ├─────────────────────────────────────────────────────────┤
+   │  cefas-server  127.0.0.1:8080  (HTTP)  9090 (gRPC)      │
+   │  data          /data           (tmpfs, wiped on reset)  │
+   └─────────────────────────────────────────────────────────┘
+
+   try:
+     cefas put hello world
+     cefas get hello
+     cefas explain "select * from t where pk='hello'"
+     cefas help
+

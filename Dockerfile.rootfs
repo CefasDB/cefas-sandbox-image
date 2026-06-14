@@ -1,0 +1,37 @@
+# Stage the V86 sandbox rootfs at /rootfs.
+# Output is copied out by scripts/build-initramfs.sh and packed into
+# initramfs.cpio.gz — this image itself is never run.
+FROM alpine:3.20 AS builder
+
+ARG CEFAS_VERSION=latest
+
+RUN apk add --no-cache curl ca-certificates xz tar
+
+# Static busybox — one binary that provides every applet we need
+# inside the VM (sh, ls, cat, mount, ps, …).
+RUN mkdir -p /rootfs/bin /rootfs/sbin /rootfs/usr/bin /rootfs/usr/sbin \
+ && curl -sSfL https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox \
+      -o /rootfs/bin/busybox \
+ && chmod +x /rootfs/bin/busybox \
+ && for applet in $(/rootfs/bin/busybox --list); do \
+      ln -sf /bin/busybox "/rootfs/bin/$applet" 2>/dev/null || true; \
+    done
+
+# Download the matching CefasDB release. Static linux/386 build so
+# it runs under the 32-bit kernel V86 boots.
+RUN set -eux; \
+    if [ "$CEFAS_VERSION" = "latest" ]; then \
+      url="https://github.com/CefasDB/cefasdb-core/releases/latest/download"; \
+    else \
+      url="https://github.com/CefasDB/cefasdb-core/releases/download/${CEFAS_VERSION}"; \
+    fi; \
+    curl -sSfL "$url/cefas-server-linux-386" -o /rootfs/usr/sbin/cefas-server; \
+    curl -sSfL "$url/cefas-linux-386"        -o /rootfs/usr/bin/cefas; \
+    chmod +x /rootfs/usr/sbin/cefas-server /rootfs/usr/bin/cefas
+
+# Skeleton dirs the kernel mounts into / our /init expects.
+RUN mkdir -p /rootfs/proc /rootfs/sys /rootfs/dev /rootfs/tmp \
+             /rootfs/etc/cefas /rootfs/data /rootfs/root
+
+FROM scratch
+COPY --from=builder /rootfs/ /rootfs/

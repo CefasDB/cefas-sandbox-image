@@ -1,0 +1,38 @@
+#!/bin/sh
+# PID 1 for the Try CefasDB sandbox.
+#
+# Mounts the pseudo-filesystems Linux expects, starts cefas-server in
+# the background so the user lands in a shell with a live server,
+# prints a brief welcome, then execs an interactive sh on the console.
+set -eu
+
+/bin/busybox --install -s /bin >/dev/null 2>&1 || true
+
+mount -t proc     proc     /proc
+mount -t sysfs    sysfs    /sys
+mount -t devtmpfs devtmpfs /dev || mdev -s
+mount -t tmpfs    tmpfs    /tmp
+
+hostname cefas-sandbox
+
+mkdir -p /data
+( cefas-server -config /etc/cefas/server.toml > /tmp/cefas-server.log 2>&1 ) &
+SERVER_PID=$!
+
+# Wait briefly for the server to bind. Cap so a stuck boot still
+# drops the user at a shell with a useful error.
+i=0
+while [ $i -lt 30 ]; do
+  if cefas status >/dev/null 2>&1; then break; fi
+  sleep 0.2
+  i=$((i + 1))
+done
+
+clear || true
+cat /etc/motd
+
+export HOME=/root
+export PS1='cefas-sandbox:\w$ '
+cd /root
+
+exec setsid cttyhack /bin/sh +m

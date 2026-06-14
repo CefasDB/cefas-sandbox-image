@@ -1,0 +1,37 @@
+# Minimal kernel config for V86. Built on top of `make tinyconfig`
+# with the additions below. Driven by scripts/build-kernel.sh:
+#
+#   make tinyconfig
+#   merge config.tiny
+#   make olddefconfig
+#   make bzImage
+#
+# Goal: boot a 32-bit kernel under V86, run an initramfs, expose
+# /dev/console for the serial port V86 wires up by default.
+CONFIG_64BIT=n
+CONFIG_X86_32=y
+CONFIG_PRINTK=y
+CONFIG_EARLY_PRINTK=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_TTY=y
+CONFIG_BINFMT_ELF=y
+CONFIG_BINFMT_SCRIPT=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_RD_GZIP=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_TMPFS=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+# Networking is disabled on purpose — cefas-server binds 127.0.0.1
+# only, and the loopback path lives entirely in userland via the
+# unix socket the CLI uses.
+CONFIG_NET=n

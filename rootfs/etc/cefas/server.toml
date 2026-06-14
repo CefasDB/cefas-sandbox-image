@@ -1,0 +1,20 @@
+# Sandbox-tuned cefas-server config.
+# The VM is single-tenant, ephemeral, and offline — no auth, no TLS,
+# no replication. Bind loopback so the CLI on the same VM can reach
+# it without involving the (disabled) network stack.
+
+[server]
+bind_http = "127.0.0.1:8080"
+bind_grpc = "127.0.0.1:9090"
+
+[storage]
+data_dir   = "/data"
+sync       = "fsync_off"
+
+[planner]
+explain_default = true
+
+[limits]
+# Keep the user from filling the VM's RAM-backed tmpfs by accident.
+max_value_bytes = 65536
+max_keys        = 100000

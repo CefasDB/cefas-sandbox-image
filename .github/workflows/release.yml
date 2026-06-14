@@ -1,0 +1,49 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      cefas_version:
+        description: 'CefasDB release tag to embed (or "latest")'
+        required: true
+        default: 'latest'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential bc bison flex libelf-dev libssl-dev \
+            cpio gzip xz-utils curl
+
+      - name: Build kernel
+        run: make kernel
+
+      - name: Build initramfs
+        env:
+          CEFAS_VERSION: ${{ github.event.inputs.cefas_version || github.ref_name }}
+        run: make initramfs
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/bzImage
+            out/initramfs.cpio.gz
+
+      - name: Publish to sandbox bucket
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.SANDBOX_AWS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SANDBOX_AWS_SECRET }}
+          AWS_DEFAULT_REGION:    us-east-1
+          SANDBOX_BUCKET:        cefas-sandbox-assets
+        run: make publish
