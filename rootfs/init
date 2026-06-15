@@ -46,6 +46,12 @@ cat /etc/motd
 
 export HOME=/root
 export PS1='cefas-sandbox:\w$ '
+# Tell readline (used by cefas REPL) and busybox sh that the
+# console is an ANSI-capable terminal. Without TERM, readline
+# falls back to a dumb mode that emits \n on every redraw —
+# typing one character looks like a whole new prompt line.
+export TERM=xterm-256color
+export LANG=C.UTF-8
 cd /root
 
 # Boot straight into the cefas REPL when the binary is present —
