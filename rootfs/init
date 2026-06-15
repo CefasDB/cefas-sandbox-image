@@ -48,11 +48,15 @@ export HOME=/root
 export PS1='cefas-sandbox:\w$ '
 cd /root
 
-# Respawn /bin/sh forever — never let PID 1 exit (kernel would panic).
-# stdio is inherited from /init, which itself inherits /dev/console
-# from the kernel, so no explicit redirection is needed.
+# Boot straight into the cefas REPL when the binary is present —
+# the sandbox is here to play with CefasDB, not Linux. The REPL
+# exits on Ctrl+D; we drop the user into /bin/sh as an escape
+# hatch, and Ctrl+D from sh respawns the REPL.
 while true; do
+  if [ -x /usr/bin/cefas ]; then
+    cefas || true
+  fi
+  printf '\n[init] dropped to shell — type \47exit\47 to relaunch the REPL.\n'
   /bin/sh -i
-  printf '\n[init] shell exited; respawning...\n'
   sleep 1
 done
